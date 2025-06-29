@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import {
   Loader2, 
   CheckCircle, 
   AlertTriangle,
-  Plant,
+  Sprout,
   Bug,
   Stethoscope
 } from "lucide-react";
@@ -205,7 +204,7 @@ const PlantAnalysis = () => {
             <CardContent>
               {!analysisResult ? (
                 <div className="text-center py-12">
-                  <Plant className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500">Upload an image to get started with plant analysis</p>
                 </div>
               ) : (
@@ -213,7 +212,7 @@ const PlantAnalysis = () => {
                   {/* Plant Identification */}
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                      <Plant className="h-5 w-5 text-green-600 mr-2" />
+                      <Sprout className="h-5 w-5 text-green-600 mr-2" />
                       Plant Identification
                     </h3>
                     <p className="text-lg font-medium text-green-700">{analysisResult.plantName}</p>

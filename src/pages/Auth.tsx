@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import {
   User, 
   Phone,
   MapPin,
-  Plant
+  Sprout
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -58,7 +57,7 @@ const Auth = () => {
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <Plant className="h-10 w-10 text-green-600" />
+            <Sprout className="h-10 w-10 text-green-600" />
             <h1 className="text-2xl font-bold text-green-800">Cassava Guard</h1>
           </div>
           <p className="text-gray-600">Join our community of agricultural professionals</p>

@@ -1,10 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { 
-  Plant, 
+  Sprout, 
   Shield, 
   TrendingUp, 
   Stethoscope, 
@@ -38,7 +37,7 @@ const Index = () => {
     {
       title: "Treatment Recommendation",
       description: "Customized treatment solutions for optimal crop recovery",
-      icon: Plant,
+      icon: Sprout,
       color: "bg-green-100 text-green-600"
     }
   ];

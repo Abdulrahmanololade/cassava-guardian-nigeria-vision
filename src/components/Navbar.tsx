@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, LogIn, Plant, Contact, Menu, X } from "lucide-react";
+import { Home, LogIn, Sprout, Contact, Menu, X } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,7 +10,7 @@ const Navbar = () => {
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
-    { path: "/plant-analysis", label: "Plant Analysis", icon: Plant },
+    { path: "/plant-analysis", label: "Plant Analysis", icon: Sprout },
     { path: "/contact", label: "Contact Us", icon: Contact },
   ];
 
@@ -22,7 +22,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Plant className="h-8 w-8 text-green-600" />
+            <Sprout className="h-8 w-8 text-green-600" />
             <span className="text-xl font-bold text-green-800">Cassava Guard</span>
           </Link>
 
