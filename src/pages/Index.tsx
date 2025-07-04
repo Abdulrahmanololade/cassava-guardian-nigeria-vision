@@ -80,7 +80,7 @@ const Index = () => {
             Get instant analysis and treatment recommendations to maximize your harvest.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/plant-analysis">
+            <Link to="/auth">
               <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-green-900 font-semibold">
                 Start Plant Analysis
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -202,7 +202,7 @@ const Index = () => {
             Join thousands of farmers who trust Cassava Guard for their crop protection needs
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/plant-analysis">
+            <Link to="/auth">
               <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-green-900 font-semibold">
                 <CheckCircle className="mr-2 h-5 w-5" />
                 Start Free Analysis

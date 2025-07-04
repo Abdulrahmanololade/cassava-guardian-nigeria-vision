@@ -52,10 +52,10 @@ const Auth = () => {
     }
     toast({
       title: "Account Created",
-      description: "Welcome to Cassava Guard! Your account has been created successfully.",
+      description: "Welcome to Cassava Guard! You can now start analyzing your plants.",
     });
-    // Redirect to home page after successful signup
-    navigate("/");
+    // Redirect to plant analysis page after successful signup
+    navigate("/plant-analysis");
   };
 
   return (
@@ -73,7 +73,7 @@ const Auth = () => {
         </div>
 
         <Card className="border-0 shadow-xl">
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue="signup" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login" className="flex items-center space-x-2">
                 <LogIn className="h-4 w-4" />
