@@ -16,6 +16,7 @@ import {
   Sprout
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/contexts/UserContext";
 
 const Auth = () => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -29,9 +30,15 @@ const Auth = () => {
   });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { login } = useUser();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    // For demo purposes, we'll use the email as the name
+    // In a real app, this would come from your authentication service
+    const userName = loginData.email.split('@')[0];
+    login({ name: userName, email: loginData.email });
+    
     toast({
       title: "Login Successful",
       description: "Welcome back to Cassava Guard!",
@@ -50,6 +57,9 @@ const Auth = () => {
       });
       return;
     }
+    
+    login({ name: signupData.name, email: signupData.email });
+    
     toast({
       title: "Account Created",
       description: "Welcome to Cassava Guard! You can now start analyzing your plants.",

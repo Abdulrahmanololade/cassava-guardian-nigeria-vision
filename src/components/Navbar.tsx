@@ -2,11 +2,19 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, LogIn, Sprout, Contact, Menu, X } from "lucide-react";
+import { Home, LogIn, Sprout, Contact, Menu, X, User, LogOut } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user, logout, isLoggedIn } = useUser();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -15,6 +23,10 @@ const Navbar = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
@@ -42,12 +54,30 @@ const Navbar = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
-            <Link to="/auth">
-              <Button className="bg-green-600 hover:bg-green-700 text-white">
-                <LogIn className="h-4 w-4 mr-2" />
-                Login / Sign Up
-              </Button>
-            </Link>
+            
+            {isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>{user?.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/auth">
+                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login / Sign Up
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -82,12 +112,33 @@ const Navbar = () => {
                   <span>{item.label}</span>
                 </Link>
               ))}
-              <Link to="/auth" onClick={() => setIsOpen(false)}>
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white mt-2">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Login / Sign Up
-                </Button>
-              </Link>
+              
+              {isLoggedIn ? (
+                <div className="mt-2">
+                  <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700">
+                    <User className="h-4 w-4" />
+                    <span>{user?.name}</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-gray-700"
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <Link to="/auth" onClick={() => setIsOpen(false)}>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white mt-2">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Login / Sign Up
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         )}
