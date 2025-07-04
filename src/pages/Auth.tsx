@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ const Auth = () => {
     confirmPassword: ""
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +36,8 @@ const Auth = () => {
       title: "Login Successful",
       description: "Welcome back to Cassava Guard!",
     });
+    // Redirect to home page after successful login
+    navigate("/");
   };
 
   const handleSignup = (e: React.FormEvent) => {
@@ -50,6 +54,8 @@ const Auth = () => {
       title: "Account Created",
       description: "Welcome to Cassava Guard! Your account has been created successfully.",
     });
+    // Redirect to home page after successful signup
+    navigate("/");
   };
 
   return (
