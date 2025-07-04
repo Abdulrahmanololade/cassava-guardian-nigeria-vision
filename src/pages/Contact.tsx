@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,10 @@ const Contact = () => {
       description: "Thank you for your feedback! We appreciate your input.",
     });
     setFormData({ name: "", email: "", rating: 5, review: "" });
+  };
+
+  const handlePhoneCall = () => {
+    window.location.href = "tel:+2349150821405";
   };
 
   const existingReviews = [
@@ -73,7 +76,7 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-8 px-4 safe-area-inset">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -92,7 +95,13 @@ const Contact = () => {
               <CardTitle className="text-xl">Call Us</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-600 mb-2">+234 803 123 4567</p>
+              <button 
+                onClick={handlePhoneCall}
+                className="text-2xl font-bold text-green-600 mb-2 hover:text-green-700 transition-colors cursor-pointer underline decoration-transparent hover:decoration-current"
+                aria-label="Call +234 915 082 1405"
+              >
+                +234 915 082 1405
+              </button>
               <p className="text-sm text-gray-500 mb-2">24/7 Emergency Hotline</p>
               <Badge variant="outline" className="text-xs">
                 <Clock className="h-3 w-3 mr-1" />
@@ -122,7 +131,12 @@ const Contact = () => {
               <CardTitle className="text-xl">Email Us</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-semibold text-gray-900 mb-2">support@cassavaguard.ng</p>
+              <a 
+                href="mailto:support@cassavaguard.ng"
+                className="text-lg font-semibold text-gray-900 mb-2 hover:text-purple-600 transition-colors cursor-pointer underline decoration-transparent hover:decoration-current block"
+              >
+                support@cassavaguard.ng
+              </a>
               <p className="text-sm text-gray-500 mb-2">Technical Support</p>
               <Badge variant="outline" className="text-xs">
                 <Users className="h-3 w-3 mr-1" />
@@ -138,20 +152,20 @@ const Contact = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               What Our Users Say
             </h2>
-            <div className="space-y-6 max-h-96 overflow-y-auto pr-2">
+            <div className="space-y-6 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               {existingReviews.map((review, index) => (
                 <Card key={index} className="border-0 shadow-md">
                   <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg font-semibold text-gray-900">
+                    <div className="flex items-start justify-between flex-wrap gap-2">
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-lg font-semibold text-gray-900 break-words">
                           {review.name}
                         </CardTitle>
-                        <CardDescription className="text-green-600 font-medium">
+                        <CardDescription className="text-green-600 font-medium break-words">
                           {review.location}
                         </CardDescription>
                       </div>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs whitespace-nowrap">
                         {review.date}
                       </Badge>
                     </div>
@@ -162,7 +176,7 @@ const Contact = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600 text-sm italic">"{review.text}"</p>
+                    <p className="text-gray-600 text-sm italic break-words">"{review.text}"</p>
                   </CardContent>
                 </Card>
               ))}
@@ -193,6 +207,7 @@ const Contact = () => {
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         placeholder="Enter your full name"
                         required
+                        className="w-full"
                       />
                     </div>
                     <div>
@@ -205,6 +220,7 @@ const Contact = () => {
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="Enter your email"
                         required
+                        className="w-full"
                       />
                     </div>
                   </div>
@@ -213,13 +229,14 @@ const Contact = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Rating
                     </label>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-wrap">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           type="button"
                           onClick={() => setFormData({ ...formData, rating: star })}
-                          className="focus:outline-none"
+                          className="focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded touch-manipulation"
+                          aria-label={`Rate ${star} star${star !== 1 ? 's' : ''}`}
                         >
                           <Star
                             className={`h-6 w-6 ${
@@ -246,12 +263,13 @@ const Contact = () => {
                       placeholder="Share your experience with Cassava Guard..."
                       rows={4}
                       required
+                      className="w-full resize-vertical"
                     />
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    className="w-full bg-green-600 hover:bg-green-700 touch-manipulation"
                     size="lg"
                   >
                     <Send className="h-4 w-4 mr-2" />
