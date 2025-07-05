@@ -43,8 +43,8 @@ const Auth = () => {
       title: "Login Successful",
       description: "Welcome back to Cassava Guard!",
     });
-    // Redirect to home page after successful login
-    navigate("/");
+    // Redirect to plant analysis page after successful login
+    navigate("/plant-analysis");
   };
 
   const handleSignup = (e: React.FormEvent) => {
