@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, LogIn, Sprout, Contact, Menu, X, User, LogOut } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
@@ -14,6 +14,7 @@ import {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout, isLoggedIn } = useUser();
 
   const navItems = [
@@ -26,6 +27,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
+    navigate("/");
   };
 
   return (
