@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,20 +13,43 @@ import {
   AlertTriangle,
   Sprout,
   Bug,
-  Stethoscope
+  Stethoscope,
+  Brain
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PlantAnalysisService, PlantAnalysisResult } from "@/services/plantAnalysisService";
 
 const PlantAnalysis = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<PlantAnalysisResult | null>(null);
+  const [isLoadingModel, setIsLoadingModel] = useState(false);
   const { toast } = useToast();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file (JPG, PNG, etc.)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -47,61 +71,35 @@ const PlantAnalysis = () => {
     }
 
     setIsAnalyzing(true);
-    // Simulate analysis with mock data
-    setTimeout(() => {
-      const mockResults = [
-        {
-          plantName: "Cassava (Manihot esculenta)",
-          condition: "Cassava Mosaic Disease Detected",
-          severity: "Moderate",
-          confidence: "94%",
-          pest: "Whitefly (Bemisia tabaci)",
-          treatment: {
-            immediate: [
-              "Remove and destroy affected leaves immediately",
-              "Apply neem oil spray (2-3 ml per liter of water)",
-              "Increase plant spacing for better air circulation"
-            ],
-            longTerm: [
-              "Plant resistant cassava varieties like TME 419",
-              "Use yellow sticky traps to monitor whitefly population",
-              "Apply organic mulch to retain soil moisture",
-              "Regular monitoring every 3-4 days"
-            ]
-          },
-          prevention: [
-            "Use certified disease-free planting material",
-            "Maintain proper field sanitation",
-            "Control weeds that harbor whiteflies",
-            "Avoid planting during peak whitefly seasons"
-          ]
-        },
-        {
-          plantName: "Cassava (Manihot esculenta)",
-          condition: "Healthy Plant",
-          severity: "None",
-          confidence: "98%",
-          pest: "No pests detected",
-          treatment: {
-            immediate: ["Continue current care routine"],
-            longTerm: ["Regular monitoring and preventive measures"]
-          },
-          prevention: [
-            "Maintain current good agricultural practices",
-            "Regular inspection for early detection"
-          ]
-        }
-      ];
-      
-      const randomResult = mockResults[Math.floor(Math.random() * mockResults.length)];
-      setAnalysisResult(randomResult);
-      setIsAnalyzing(false);
+    setIsLoadingModel(true);
+    
+    try {
+      toast({
+        title: "Loading AI Model",
+        description: "Initializing plant disease detection model...",
+      });
+
+      const result = await PlantAnalysisService.analyzeImage(selectedImage);
+      setAnalysisResult(result);
       
       toast({
         title: "Analysis Complete",
-        description: `Plant identified: ${randomResult.plantName}`,
+        description: result.diseaseDetected 
+          ? `Disease detected: ${result.condition}` 
+          : "Plant appears healthy",
+        variant: result.diseaseDetected ? "destructive" : "default",
       });
-    }, 3000);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to analyze the image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+      setIsLoadingModel(false);
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -125,11 +123,15 @@ const PlantAnalysis = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Plant Health Analysis
+            AI-Powered Plant Health Analysis
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Upload an image of your cassava plant for instant AI-powered analysis and treatment recommendations
+            Upload an image of your cassava plant for instant AI-powered disease and pest detection with treatment recommendations
           </p>
+          <div className="flex items-center justify-center mt-4 space-x-2 text-sm text-blue-600">
+            <Brain className="h-4 w-4" />
+            <span>Powered by Advanced Computer Vision AI</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -141,7 +143,7 @@ const PlantAnalysis = () => {
                 <span>Upload Plant Image</span>
               </CardTitle>
               <CardDescription>
-                Take a clear photo of your cassava plant showing any affected areas
+                Take a clear photo of your cassava plant showing any affected areas. The AI will analyze it for diseases and pests.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -176,12 +178,12 @@ const PlantAnalysis = () => {
                     {isAnalyzing ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Analyzing Plant...
+                        {isLoadingModel ? "Loading AI Model..." : "Analyzing Plant..."}
                       </>
                     ) : (
                       <>
-                        <FileImage className="mr-2 h-5 w-5" />
-                        Analyze Plant Health
+                        <Brain className="mr-2 h-5 w-5" />
+                        Analyze with AI
                       </>
                     )}
                   </Button>
@@ -195,20 +197,28 @@ const PlantAnalysis = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Stethoscope className="h-6 w-6 text-blue-600" />
-                <span>Analysis Results</span>
+                <span>AI Analysis Results</span>
               </CardTitle>
               <CardDescription>
-                Detailed plant health assessment and recommendations
+                Detailed plant health assessment powered by computer vision AI
               </CardDescription>
             </CardHeader>
             <CardContent>
               {!analysisResult ? (
                 <div className="text-center py-12">
                   <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Upload an image to get started with plant analysis</p>
+                  <p className="text-gray-500">Upload an image to get started with AI-powered plant analysis</p>
                 </div>
               ) : (
                 <div className="space-y-6">
+                  {/* Analysis Details */}
+                  <Alert className={analysisResult.diseaseDetected ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}>
+                    <Brain className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>AI Analysis:</strong> {analysisResult.analysisDetails}
+                    </AlertDescription>
+                  </Alert>
+
                   {/* Plant Identification */}
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
@@ -244,7 +254,7 @@ const PlantAnalysis = () => {
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
                         <Bug className="h-5 w-5 text-red-600 mr-2" />
-                        Pest Detection
+                        Pest/Pathogen Detection
                       </h3>
                       <p className="text-red-700 font-medium">{analysisResult.pest}</p>
                     </div>
