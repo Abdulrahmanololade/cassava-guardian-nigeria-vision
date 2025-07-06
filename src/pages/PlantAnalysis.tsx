@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Upload, 
   Loader2, 
@@ -14,10 +15,12 @@ import {
   Stethoscope,
   Brain,
   Camera,
-  XCircle
+  XCircle,
+  Lightbulb
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PlantAnalysisService, PlantAnalysisResult } from "@/services/plantAnalysisService";
+import ModelRecommendations from "@/components/ModelRecommendations";
 
 const PlantAnalysis = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -143,192 +146,211 @@ const PlantAnalysis = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upload Section */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Camera className="h-6 w-6 text-blue-600" />
-                <span>Upload Cassava Plant Image</span>
-              </CardTitle>
-              <CardDescription>
-                Take or upload a clear photo of your cassava plant for analysis
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 transition-colors">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg font-medium text-gray-700">Click to upload cassava plant image</p>
-                  <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
-                </label>
-              </div>
+        <Tabs defaultValue="analysis" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="analysis" className="flex items-center space-x-2">
+              <Camera className="h-4 w-4" />
+              <span>Plant Analysis</span>
+            </TabsTrigger>
+            <TabsTrigger value="models" className="flex items-center space-x-2">
+              <Lightbulb className="h-4 w-4" />
+              <span>AI Models</span>
+            </TabsTrigger>
+          </TabsList>
 
-              {imagePreview && (
-                <div className="mt-4">
-                  <img
-                    src={imagePreview}
-                    alt="Selected plant"
-                    className="w-full h-64 object-cover rounded-lg border"
-                  />
-                  <Button
-                    onClick={analyzeImage}
-                    disabled={isAnalyzing}
-                    className="w-full mt-4 bg-green-600 hover:bg-green-700"
-                    size="lg"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Validating & Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <Brain className="mr-2 h-5 w-5" />
-                        Analyze Cassava Plant
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Important:</strong> Only cassava plant images are accepted.
-                  <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                    <li>Ensure the image shows cassava leaves, stems, or whole plant</li>
-                    <li>Take photos in good lighting conditions</li>
-                    <li>Focus on affected areas if visible</li>
-                    <li>Avoid blurry or distant shots</li>
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-
-          {/* Results Section */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Stethoscope className="h-6 w-6 text-blue-600" />
-                <span>AI Analysis Results</span>
-              </CardTitle>
-              <CardDescription>
-                Detailed cassava plant health assessment with treatment recommendations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {!analysisResult ? (
-                <div className="text-center py-12">
-                  <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Upload a cassava plant image to get started with analysis</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Analysis Details */}
-                  <Alert className={analysisResult.diseaseDetected ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}>
-                    <Brain className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>AI Analysis:</strong> {analysisResult.analysisDetails}
-                    </AlertDescription>
-                  </Alert>
-
-                  {/* Plant Identification */}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                      <Sprout className="h-5 w-5 text-green-600 mr-2" />
-                      Plant Identification
-                    </h3>
-                    <p className="text-lg font-medium text-green-700">{analysisResult.plantName}</p>
-                    <Badge variant="outline" className="mt-1">
-                      Confidence: {analysisResult.confidence}
-                    </Badge>
+          <TabsContent value="analysis">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Upload Section */}
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Camera className="h-6 w-6 text-blue-600" />
+                    <span>Upload Cassava Plant Image</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Take or upload a clear photo of your cassava plant for analysis
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-lg font-medium text-gray-700">Click to upload cassava plant image</p>
+                      <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
+                    </label>
                   </div>
 
-                  {/* Health Status */}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                      <AlertTriangle className="h-5 w-5 text-orange-600 mr-2" />
-                      Health Status
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={getSeverityColor(analysisResult.severity)}>
-                        {analysisResult.condition}
-                      </Badge>
-                      {analysisResult.severity !== "None" && (
-                        <Badge variant="outline">
-                          Severity: {analysisResult.severity}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Pest Detection */}
-                  {analysisResult.pest !== "No pests detected" && (
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        <Bug className="h-5 w-5 text-red-600 mr-2" />
-                        Pest/Pathogen Detection
-                      </h3>
-                      <p className="text-red-700 font-medium">{analysisResult.pest}</p>
+                  {imagePreview && (
+                    <div className="mt-4">
+                      <img
+                        src={imagePreview}
+                        alt="Selected plant"
+                        className="w-full h-64 object-cover rounded-lg border"
+                      />
+                      <Button
+                        onClick={analyzeImage}
+                        disabled={isAnalyzing}
+                        className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                        size="lg"
+                      >
+                        {isAnalyzing ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Validating & Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="mr-2 h-5 w-5" />
+                            Analyze Cassava Plant
+                          </>
+                        )}
+                      </Button>
                     </div>
                   )}
 
-                  {/* Treatment Recommendations */}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                      <CheckCircle className="h-5 w-5 text-blue-600 mr-2" />
-                      Treatment Recommendations
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-gray-800 mb-2">Immediate Actions:</h4>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-                          {analysisResult.treatment.immediate.map((action: string, index: number) => (
-                            <li key={index}>{action}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      {analysisResult.treatment.longTerm && (
-                        <div>
-                          <h4 className="font-medium text-gray-800 mb-2">Long-term Management:</h4>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-                            {analysisResult.treatment.longTerm.map((action: string, index: number) => (
-                              <li key={index}>{action}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Prevention Tips */}
                   <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Prevention Tips:</strong>
-                      <ul className="list-disc list-inside mt-2 space-y-1">
-                        {analysisResult.prevention.map((tip: string, index: number) => (
-                          <li key={index} className="text-sm">{tip}</li>
-                        ))}
+                      <strong>Demo Mode:</strong> This is a simulated AI analysis for demonstration.
+                      <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                        <li>Ensure the image shows cassava leaves, stems, or whole plant</li>
+                        <li>Take photos in good lighting conditions</li>
+                        <li>Focus on affected areas if visible</li>
+                        <li>Check the "AI Models" tab for production-ready solutions</li>
                       </ul>
                     </AlertDescription>
                   </Alert>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
+
+              {/* Results Section */}
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Stethoscope className="h-6 w-6 text-blue-600" />
+                    <span>AI Analysis Results</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Detailed cassava plant health assessment with treatment recommendations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {!analysisResult ? (
+                    <div className="text-center py-12">
+                      <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500">Upload a cassava plant image to get started with analysis</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Analysis Details */}
+                      <Alert className={analysisResult.diseaseDetected ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}>
+                        <Brain className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>AI Analysis:</strong> {analysisResult.analysisDetails}
+                        </AlertDescription>
+                      </Alert>
+
+                      {/* Plant Identification */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                          <Sprout className="h-5 w-5 text-green-600 mr-2" />
+                          Plant Identification
+                        </h3>
+                        <p className="text-lg font-medium text-green-700">{analysisResult.plantName}</p>
+                        <Badge variant="outline" className="mt-1">
+                          Confidence: {analysisResult.confidence}
+                        </Badge>
+                      </div>
+
+                      {/* Health Status */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                          <AlertTriangle className="h-5 w-5 text-orange-600 mr-2" />
+                          Health Status
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                          <Badge className={getSeverityColor(analysisResult.severity)}>
+                            {analysisResult.condition}
+                          </Badge>
+                          {analysisResult.severity !== "None" && (
+                            <Badge variant="outline">
+                              Severity: {analysisResult.severity}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Pest Detection */}
+                      {analysisResult.pest !== "No pests detected" && (
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                            <Bug className="h-5 w-5 text-red-600 mr-2" />
+                            Pest/Pathogen Detection
+                          </h3>
+                          <p className="text-red-700 font-medium">{analysisResult.pest}</p>
+                        </div>
+                      )}
+
+                      {/* Treatment Recommendations */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                          <CheckCircle className="h-5 w-5 text-blue-600 mr-2" />
+                          Treatment Recommendations
+                        </h3>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="font-medium text-gray-800 mb-2">Immediate Actions:</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                              {analysisResult.treatment.immediate.map((action: string, index: number) => (
+                                <li key={index}>{action}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          {analysisResult.treatment.longTerm && (
+                            <div>
+                              <h4 className="font-medium text-gray-800 mb-2">Long-term Management:</h4>
+                              <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                                {analysisResult.treatment.longTerm.map((action: string, index: number) => (
+                                  <li key={index}>{action}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Prevention Tips */}
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Prevention Tips:</strong>
+                          <ul className="list-disc list-inside mt-2 space-y-1">
+                            {analysisResult.prevention.map((tip: string, index: number) => (
+                              <li key={index} className="text-sm">{tip}</li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="models">
+            <ModelRecommendations />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
