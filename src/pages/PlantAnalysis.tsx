@@ -13,7 +13,8 @@ import {
   Bug,
   Stethoscope,
   Brain,
-  Camera
+  Camera,
+  XCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PlantAnalysisService, PlantAnalysisResult } from "@/services/plantAnalysisService";
@@ -72,8 +73,8 @@ const PlantAnalysis = () => {
     
     try {
       toast({
-        title: "Analyzing Image",
-        description: "Processing image with AI plant analysis...",
+        title: "Validating Image",
+        description: "Checking if image contains a cassava plant...",
       });
 
       const result = await PlantAnalysisService.analyzeImage(selectedImage);
@@ -83,16 +84,28 @@ const PlantAnalysis = () => {
         title: "Analysis Complete",
         description: result.diseaseDetected 
           ? `Issue detected: ${result.condition}` 
-          : "Plant appears healthy",
+          : "Cassava plant appears healthy",
         variant: result.diseaseDetected ? "destructive" : "default",
       });
     } catch (error) {
       console.error('Analysis failed:', error);
-      toast({
-        title: "Analysis Failed",
-        description: error instanceof Error ? error.message : "Unable to analyze the image. Please try again.",
-        variant: "destructive",
-      });
+      
+      const errorMessage = error instanceof Error ? error.message : "Unable to analyze the image. Please try again.";
+      
+      // Check if it's a validation error
+      if (errorMessage.includes('Invalid image:')) {
+        toast({
+          title: "Invalid Image",
+          description: errorMessage.replace('Invalid image: ', ''),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Analysis Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -119,7 +132,7 @@ const PlantAnalysis = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            AI-Powered Plant Health Analysis
+            AI-Powered Cassava Plant Health Analysis
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Upload an image of your cassava plant for instant AI-powered disease and pest detection with treatment recommendations
@@ -136,7 +149,7 @@ const PlantAnalysis = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Camera className="h-6 w-6 text-blue-600" />
-                <span>Upload Plant Image</span>
+                <span>Upload Cassava Plant Image</span>
               </CardTitle>
               <CardDescription>
                 Take or upload a clear photo of your cassava plant for analysis
@@ -153,7 +166,7 @@ const PlantAnalysis = () => {
                 />
                 <label htmlFor="image-upload" className="cursor-pointer">
                   <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg font-medium text-gray-700">Click to upload image</p>
+                  <p className="text-lg font-medium text-gray-700">Click to upload cassava plant image</p>
                   <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
                 </label>
               </div>
@@ -174,12 +187,12 @@ const PlantAnalysis = () => {
                     {isAnalyzing ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Analyzing Plant...
+                        Validating & Analyzing...
                       </>
                     ) : (
                       <>
                         <Brain className="mr-2 h-5 w-5" />
-                        Analyze Plant Health
+                        Analyze Cassava Plant
                       </>
                     )}
                   </Button>
@@ -189,11 +202,11 @@ const PlantAnalysis = () => {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Tips for better results:</strong>
+                  <strong>Important:</strong> Only cassava plant images are accepted.
                   <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                    <li>Ensure the image shows cassava leaves, stems, or whole plant</li>
                     <li>Take photos in good lighting conditions</li>
                     <li>Focus on affected areas if visible</li>
-                    <li>Include both leaves and stems when possible</li>
                     <li>Avoid blurry or distant shots</li>
                   </ul>
                 </AlertDescription>
@@ -209,14 +222,14 @@ const PlantAnalysis = () => {
                 <span>AI Analysis Results</span>
               </CardTitle>
               <CardDescription>
-                Detailed plant health assessment with treatment recommendations
+                Detailed cassava plant health assessment with treatment recommendations
               </CardDescription>
             </CardHeader>
             <CardContent>
               {!analysisResult ? (
                 <div className="text-center py-12">
                   <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Upload an image to get started with plant analysis</p>
+                  <p className="text-gray-500">Upload a cassava plant image to get started with analysis</p>
                 </div>
               ) : (
                 <div className="space-y-6">

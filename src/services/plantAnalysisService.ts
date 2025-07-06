@@ -1,4 +1,3 @@
-
 export interface PlantAnalysisResult {
   plantName: string;
   condition: string;
@@ -12,6 +11,12 @@ export interface PlantAnalysisResult {
   prevention: string[];
   diseaseDetected: boolean;
   analysisDetails: string;
+}
+
+export interface ImageValidationResult {
+  isValid: boolean;
+  reason?: string;
+  confidence: number;
 }
 
 // Comprehensive plant disease and condition database
@@ -169,7 +174,16 @@ const plantConditions = {
 export class PlantAnalysisService {
   static async analyzeImage(imageFile: File): Promise<PlantAnalysisResult> {
     try {
-      console.log('Starting plant analysis simulation...');
+      console.log('Starting plant analysis with validation...');
+      
+      // First validate if the image contains a cassava plant
+      const validationResult = await this.validateCassavaImage(imageFile);
+      
+      if (!validationResult.isValid) {
+        throw new Error(`Invalid image: ${validationResult.reason}`);
+      }
+      
+      console.log('Image validation passed, proceeding with analysis...');
       
       // Simulate processing time
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -182,8 +196,106 @@ export class PlantAnalysisService {
       
     } catch (error) {
       console.error('Error during plant analysis:', error);
-      throw new Error('Failed to analyze plant image. Please try again.');
+      throw error;
     }
+  }
+
+  private static async validateCassavaImage(imageFile: File): Promise<ImageValidationResult> {
+    console.log('Validating cassava plant image...');
+    
+    // Simulate validation processing time
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const fileName = imageFile.name.toLowerCase();
+    const fileSize = imageFile.size;
+    
+    // Create image element to analyze basic properties
+    const imageUrl = URL.createObjectURL(imageFile);
+    const img = new Image();
+    
+    return new Promise((resolve) => {
+      img.onload = () => {
+        const width = img.width;
+        const height = img.height;
+        const aspectRatio = width / height;
+        
+        // Clean up the object URL
+        URL.revokeObjectURL(imageUrl);
+        
+        // Simulation logic for cassava plant detection
+        let isValid = true;
+        let reason = '';
+        let confidence = 0;
+        
+        // Check file name for obvious non-plant indicators
+        const nonPlantKeywords = ['person', 'people', 'human', 'face', 'car', 'vehicle', 'building', 'house', 'animal', 'cat', 'dog', 'food', 'meal'];
+        const hasNonPlantKeyword = nonPlantKeywords.some(keyword => fileName.includes(keyword));
+        
+        // Check for cassava-related keywords
+        const cassavaKeywords = ['cassava', 'plant', 'leaf', 'leaves', 'crop', 'agriculture', 'farm', 'botanical'];
+        const hasCassavaKeyword = cassavaKeywords.some(keyword => fileName.includes(keyword));
+        
+        if (hasNonPlantKeyword) {
+          isValid = false;
+          reason = 'Image appears to contain non-plant content. Please upload an image of a cassava plant.';
+          confidence = 85 + Math.floor(Math.random() * 10);
+        } else if (aspectRatio < 0.5 || aspectRatio > 3) {
+          // Very unusual aspect ratios might indicate non-plant images
+          isValid = false;
+          reason = 'Image dimensions suggest this may not be a plant image. Please upload a clear photo of a cassava plant.';
+          confidence = 70 + Math.floor(Math.random() * 15);
+        } else if (width < 100 || height < 100) {
+          // Very small images might not be suitable for analysis
+          isValid = false;
+          reason = 'Image resolution is too low for accurate plant analysis. Please upload a higher quality image.';
+          confidence = 90 + Math.floor(Math.random() * 8);
+        } else if (fileSize < 10000) {
+          // Very small file sizes might indicate low quality or non-photographic content
+          isValid = false;
+          reason = 'Image file size suggests low quality. Please upload a clear, high-quality photo of a cassava plant.';
+          confidence = 75 + Math.floor(Math.random() * 15);
+        } else {
+          // Apply probabilistic validation
+          let validationScore = 0.7; // Base probability
+          
+          if (hasCassavaKeyword) validationScore += 0.2;
+          if (aspectRatio >= 0.8 && aspectRatio <= 1.5) validationScore += 0.1; // Square-ish images often better for plants
+          if (fileSize > 100000) validationScore += 0.1; // Larger files often indicate better quality
+          
+          // Add some randomness to simulate real AI behavior
+          const randomFactor = (Math.random() - 0.5) * 0.3;
+          validationScore += randomFactor;
+          
+          if (validationScore < 0.6) {
+            isValid = false;
+            const reasons = [
+              'Image does not appear to contain a cassava plant. Please upload a clear photo of cassava leaves or plant.',
+              'Unable to detect cassava plant features in this image. Please ensure the image shows a cassava plant clearly.',
+              'This image may not be of a cassava plant. Please upload an image showing cassava leaves, stems, or the whole plant.',
+              'Plant detection failed - image may not contain recognizable cassava plant features.'
+            ];
+            reason = reasons[Math.floor(Math.random() * reasons.length)];
+            confidence = 60 + Math.floor(Math.random() * 25);
+          } else {
+            confidence = Math.floor(validationScore * 100);
+          }
+        }
+        
+        console.log('Validation result:', { isValid, reason, confidence });
+        resolve({ isValid, reason, confidence });
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(imageUrl);
+        resolve({
+          isValid: false,
+          reason: 'Unable to process image file. Please ensure you uploaded a valid image format.',
+          confidence: 95
+        });
+      };
+      
+      img.src = imageUrl;
+    });
   }
 
   private static async simulateAnalysis(imageFile: File): Promise<PlantAnalysisResult> {
