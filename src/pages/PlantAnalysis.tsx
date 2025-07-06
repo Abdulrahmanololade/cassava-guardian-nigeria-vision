@@ -4,12 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { 
   Upload, 
-  Camera, 
-  FileImage, 
   Loader2, 
   CheckCircle, 
   AlertTriangle,
@@ -17,18 +13,16 @@ import {
   Bug,
   Stethoscope,
   Brain,
-  Settings
+  Camera
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { RoboflowService, RoboflowResult } from "@/services/roboflowService";
+import { PlantAnalysisService, PlantAnalysisResult } from "@/services/plantAnalysisService";
 
 const PlantAnalysis = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<RoboflowResult | null>(null);
-  const [apiKey, setApiKey] = useState<string>("");
-  const [modelEndpoint, setModelEndpoint] = useState<string>("");
+  const [analysisResult, setAnalysisResult] = useState<PlantAnalysisResult | null>(null);
   const { toast } = useToast();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,39 +68,21 @@ const PlantAnalysis = () => {
       return;
     }
 
-    if (!apiKey.trim()) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your Roboflow API key",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!modelEndpoint.trim()) {
-      toast({
-        title: "Model Endpoint Required",
-        description: "Please enter your Roboflow model endpoint",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsAnalyzing(true);
     
     try {
       toast({
         title: "Analyzing Image",
-        description: "Processing image with Roboflow AI model...",
+        description: "Processing image with AI plant analysis...",
       });
 
-      const result = await RoboflowService.analyzeImage(selectedImage, apiKey, modelEndpoint);
+      const result = await PlantAnalysisService.analyzeImage(selectedImage);
       setAnalysisResult(result);
       
       toast({
         title: "Analysis Complete",
         description: result.diseaseDetected 
-          ? `Disease detected: ${result.condition}` 
+          ? `Issue detected: ${result.condition}` 
           : "Plant appears healthy",
         variant: result.diseaseDetected ? "destructive" : "default",
       });
@@ -150,53 +126,23 @@ const PlantAnalysis = () => {
           </p>
           <div className="flex items-center justify-center mt-4 space-x-2 text-sm text-blue-600">
             <Brain className="h-4 w-4" />
-            <span>Powered by Roboflow Computer Vision AI</span>
+            <span>Powered by Advanced Plant Analysis AI</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Configuration & Upload Section */}
+          {/* Upload Section */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Settings className="h-6 w-6 text-blue-600" />
-                <span>Roboflow Configuration</span>
+                <Camera className="h-6 w-6 text-blue-600" />
+                <span>Upload Plant Image</span>
               </CardTitle>
               <CardDescription>
-                Enter your Roboflow API credentials to use your pre-trained model
+                Take or upload a clear photo of your cassava plant for analysis
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="api-key">Roboflow API Key</Label>
-                <Input
-                  id="api-key"
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Enter your Roboflow API key"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="model-endpoint">Model Endpoint</Label>
-                <Input
-                  id="model-endpoint"
-                  value={modelEndpoint}
-                  onChange={(e) => setModelEndpoint(e.target.value)}
-                  placeholder="e.g., your-workspace/your-model/version"
-                />
-              </div>
-              
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Need help?</strong> Get your API key and model endpoint from your Roboflow dashboard at{" "}
-                  <a href="https://roboflow.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                    roboflow.com
-                  </a>
-                </AlertDescription>
-              </Alert>
-
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 transition-colors">
                 <input
                   type="file"
@@ -221,24 +167,37 @@ const PlantAnalysis = () => {
                   />
                   <Button
                     onClick={analyzeImage}
-                    disabled={isAnalyzing || !apiKey.trim() || !modelEndpoint.trim()}
+                    disabled={isAnalyzing}
                     className="w-full mt-4 bg-green-600 hover:bg-green-700"
                     size="lg"
                   >
                     {isAnalyzing ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Analyzing with Roboflow...
+                        Analyzing Plant...
                       </>
                     ) : (
                       <>
                         <Brain className="mr-2 h-5 w-5" />
-                        Analyze with Roboflow AI
+                        Analyze Plant Health
                       </>
                     )}
                   </Button>
                 </div>
               )}
+
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Tips for better results:</strong>
+                  <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                    <li>Take photos in good lighting conditions</li>
+                    <li>Focus on affected areas if visible</li>
+                    <li>Include both leaves and stems when possible</li>
+                    <li>Avoid blurry or distant shots</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
 
@@ -250,14 +209,14 @@ const PlantAnalysis = () => {
                 <span>AI Analysis Results</span>
               </CardTitle>
               <CardDescription>
-                Detailed plant health assessment powered by Roboflow computer vision AI
+                Detailed plant health assessment with treatment recommendations
               </CardDescription>
             </CardHeader>
             <CardContent>
               {!analysisResult ? (
                 <div className="text-center py-12">
                   <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Configure your Roboflow settings and upload an image to get started</p>
+                  <p className="text-gray-500">Upload an image to get started with plant analysis</p>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -265,7 +224,7 @@ const PlantAnalysis = () => {
                   <Alert className={analysisResult.diseaseDetected ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}>
                     <Brain className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Roboflow Analysis:</strong> {analysisResult.analysisDetails}
+                      <strong>AI Analysis:</strong> {analysisResult.analysisDetails}
                     </AlertDescription>
                   </Alert>
 
