@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,11 +15,13 @@ import {
   Brain,
   Camera,
   XCircle,
-  Lightbulb
+  Lightbulb,
+  Settings
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PlantAnalysisService, PlantAnalysisResult } from "@/services/plantAnalysisService";
 import ModelRecommendations from "@/components/ModelRecommendations";
+import ApiConfiguration from "@/components/ApiConfiguration";
 
 const PlantAnalysis = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -147,10 +148,14 @@ const PlantAnalysis = () => {
         </div>
 
         <Tabs defaultValue="analysis" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="analysis" className="flex items-center space-x-2">
               <Camera className="h-4 w-4" />
               <span>Plant Analysis</span>
+            </TabsTrigger>
+            <TabsTrigger value="config" className="flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span>API Config</span>
             </TabsTrigger>
             <TabsTrigger value="models" className="flex items-center space-x-2">
               <Lightbulb className="h-4 w-4" />
@@ -223,7 +228,7 @@ const PlantAnalysis = () => {
                         <li>Ensure the image shows cassava leaves, stems, or whole plant</li>
                         <li>Take photos in good lighting conditions</li>
                         <li>Focus on affected areas if visible</li>
-                        <li>Check the "AI Models" tab for production-ready solutions</li>
+                        <li>Configure API credentials in the "API Config" tab for real analysis</li>
                       </ul>
                     </AlertDescription>
                   </Alert>
@@ -345,6 +350,10 @@ const PlantAnalysis = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="config">
+            <ApiConfiguration />
           </TabsContent>
 
           <TabsContent value="models">
