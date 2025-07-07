@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,12 @@ import {
   CheckCircle,
   AlertTriangle,
   Eye,
-  EyeOff
+  EyeOff,
+  Lock,
+  Shield
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/contexts/UserContext";
 
 const ApiConfiguration = () => {
   const [apiKey, setApiKey] = useState("");
@@ -24,8 +26,21 @@ const ApiConfiguration = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const { toast } = useToast();
+  const { user } = useUser();
+
+  // Check if current user is admin
+  const isAdmin = user?.email === "omotayoofficialbr@gmail.com";
 
   const handleSaveConfiguration = () => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only admin users can modify API configuration",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!apiKey.trim()) {
       toast({
         title: "API Key Required",
@@ -55,6 +70,15 @@ const ApiConfiguration = () => {
   };
 
   const handleTestConnection = async () => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only admin users can test API configuration",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!apiKey.trim() || !modelEndpoint.trim()) {
       toast({
         title: "Missing Configuration",
@@ -129,6 +153,16 @@ const ApiConfiguration = () => {
         </p>
       </div>
 
+      {!isAdmin && (
+        <Alert className="border-red-200 bg-red-50">
+          <Lock className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            <strong>Access Restricted:</strong> Only admin users can modify API configuration settings. 
+            Please contact the administrator (omotayoofficialbr@gmail.com) to make changes.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Alert>
         <Key className="h-4 w-4" />
         <AlertDescription>
@@ -140,11 +174,19 @@ const ApiConfiguration = () => {
       <Card className="border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Key className="h-6 w-6 text-blue-600" />
+            {isAdmin ? (
+              <Key className="h-6 w-6 text-blue-600" />
+            ) : (
+              <Shield className="h-6 w-6 text-gray-400" />
+            )}
             <span>API Credentials</span>
+            {!isAdmin && <Lock className="h-4 w-4 text-gray-400" />}
           </CardTitle>
           <CardDescription>
-            Enter your AI model API credentials to enable real plant disease detection
+            {isAdmin 
+              ? "Enter your AI model API credentials to enable real plant disease detection" 
+              : "API configuration is restricted to admin users only"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -154,10 +196,12 @@ const ApiConfiguration = () => {
               <Input
                 id="api-key"
                 type={showApiKey ? "text" : "password"}
-                placeholder="Enter your API key"
+                placeholder={isAdmin ? "Enter your API key" : "••••••••••••••••"}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="pr-10"
+                disabled={!isAdmin}
+                readOnly={!isAdmin}
               />
               <Button
                 type="button"
@@ -165,6 +209,7 @@ const ApiConfiguration = () => {
                 size="sm"
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                 onClick={() => setShowApiKey(!showApiKey)}
+                disabled={!isAdmin}
               >
                 {showApiKey ? (
                   <EyeOff className="h-4 w-4" />
@@ -182,10 +227,12 @@ const ApiConfiguration = () => {
               <Input
                 id="model-endpoint"
                 type="url"
-                placeholder="https://api.example.com/v1/plant-analysis"
+                placeholder={isAdmin ? "https://api.example.com/v1/plant-analysis" : "https://••••••••••••••••"}
                 value={modelEndpoint}
                 onChange={(e) => setModelEndpoint(e.target.value)}
                 className="pl-10"
+                disabled={!isAdmin}
+                readOnly={!isAdmin}
               />
             </div>
           </div>
@@ -194,7 +241,7 @@ const ApiConfiguration = () => {
             <Button
               onClick={handleSaveConfiguration}
               className="flex-1"
-              disabled={!apiKey.trim() || !modelEndpoint.trim()}
+              disabled={!isAdmin || !apiKey.trim() || !modelEndpoint.trim()}
             >
               <Save className="mr-2 h-4 w-4" />
               Save Configuration
@@ -203,7 +250,7 @@ const ApiConfiguration = () => {
               onClick={handleTestConnection}
               variant="outline"
               className="flex-1"
-              disabled={!apiKey.trim() || !modelEndpoint.trim() || isTesting}
+              disabled={!isAdmin || !apiKey.trim() || !modelEndpoint.trim() || isTesting}
             >
               {isTesting ? (
                 <>
