@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,19 @@ const PlantAnalysis = () => {
       toast({
         title: "No image selected",
         description: "Please select an image to analyze",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if API is configured
+    const savedApiKey = localStorage.getItem('plantAnalysis_apiKey');
+    const savedEndpoint = localStorage.getItem('plantAnalysis_modelEndpoint');
+
+    if (!savedApiKey || !savedEndpoint) {
+      toast({
+        title: "API Not Configured",
+        description: "Please configure your API credentials in the API Config tab before analyzing images.",
         variant: "destructive",
       });
       return;
@@ -223,12 +237,12 @@ const PlantAnalysis = () => {
                   <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Demo Mode:</strong> This is a simulated AI analysis for demonstration.
+                      <strong>Requirements:</strong>
                       <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
                         <li>Ensure the image shows cassava leaves, stems, or whole plant</li>
                         <li>Take photos in good lighting conditions</li>
                         <li>Focus on affected areas if visible</li>
-                        <li>Configure API credentials in the "API Config" tab for real analysis</li>
+                        <li>Configure API credentials in the "API Config" tab for analysis</li>
                       </ul>
                     </AlertDescription>
                   </Alert>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -132,10 +133,10 @@ const Contact = () => {
             </CardHeader>
             <CardContent>
               <a 
-                href="mailto:support@cassavaguard.ng"
+                href="mailto:omotayoofficialbr@gmail.com"
                 className="text-lg font-semibold text-gray-900 mb-2 hover:text-purple-600 transition-colors cursor-pointer underline decoration-transparent hover:decoration-current block"
               >
-                support@cassavaguard.ng
+                omotayoofficialbr@gmail.com
               </a>
               <p className="text-sm text-gray-500 mb-2">Technical Support</p>
               <Badge variant="outline" className="text-xs">
