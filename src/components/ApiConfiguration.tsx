@@ -26,12 +26,21 @@ const ApiConfiguration = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user, isLoggedIn } = useUser();
 
-  // Check if current user is admin
-  const isAdmin = user?.email === "omotayoofficialbr@gmail.com";
+  // Check if current user is admin - using the proper user object from Supabase
+  const isAdmin = isLoggedIn && user?.email === "omotayoofficialbr@gmail.com";
 
   const handleSaveConfiguration = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to configure API settings",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!isAdmin) {
       toast({
         title: "Access Denied",
@@ -70,6 +79,15 @@ const ApiConfiguration = () => {
   };
 
   const handleTestConnection = async () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to test API configuration",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!isAdmin) {
       toast({
         title: "Access Denied",
@@ -153,7 +171,16 @@ const ApiConfiguration = () => {
         </p>
       </div>
 
-      {!isAdmin && (
+      {!isLoggedIn && (
+        <Alert className="border-amber-200 bg-amber-50">
+          <Lock className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            <strong>Authentication Required:</strong> Please log in to access API configuration settings.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isLoggedIn && !isAdmin && (
         <Alert className="border-red-200 bg-red-50">
           <Lock className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">

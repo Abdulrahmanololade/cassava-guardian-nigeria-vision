@@ -15,7 +15,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout, isLoggedIn } = useUser();
+  const { user, logout, isLoggedIn, loading } = useUser();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -25,9 +25,29 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Get display name from user
+  const getDisplayName = () => {
+    if (!user) return '';
+    
+    // Try to get name from user metadata first
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
+    if (fullName) return fullName;
+    
+    // Fallback to email prefix
+    if (user.email) {
+      return user.email.split('@')[0];
+    }
+    
+    return 'User';
   };
 
   return (
@@ -57,28 +77,30 @@ const Navbar = () => {
               </Link>
             ))}
             
-            {isLoggedIn ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span>{user?.name}</span>
+            {!loading && (
+              isLoggedIn ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span>{getDisplayName()}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link to="/auth">
+                  <Button className="bg-green-600 hover:bg-green-700 text-white">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Login / Sign Up
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link to="/auth">
-                <Button className="bg-green-600 hover:bg-green-700 text-white">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Login / Sign Up
-                </Button>
-              </Link>
+                </Link>
+              )
             )}
           </div>
 
@@ -115,31 +137,33 @@ const Navbar = () => {
                 </Link>
               ))}
               
-              {isLoggedIn ? (
-                <div className="mt-2">
-                  <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700">
-                    <User className="h-4 w-4" />
-                    <span>{user?.name}</span>
+              {!loading && (
+                isLoggedIn ? (
+                  <div className="mt-2">
+                    <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700">
+                      <User className="h-4 w-4" />
+                      <span>{getDisplayName()}</span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-gray-700"
+                      onClick={() => {
+                        handleLogout();
+                        setIsOpen(false);
+                      }}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-gray-700"
-                    onClick={() => {
-                      handleLogout();
-                      setIsOpen(false);
-                    }}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </Button>
-                </div>
-              ) : (
-                <Link to="/auth" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white mt-2">
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Login / Sign Up
-                  </Button>
-                </Link>
+                ) : (
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
+                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white mt-2">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Login / Sign Up
+                    </Button>
+                  </Link>
+                )
               )}
             </div>
           </div>

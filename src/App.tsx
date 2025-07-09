@@ -11,6 +11,7 @@ import PlantAnalysis from "./pages/PlantAnalysis";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +27,11 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/plant-analysis" element={<PlantAnalysis />} />
+              <Route path="/plant-analysis" element={
+                <ProtectedRoute>
+                  <PlantAnalysis />
+                </ProtectedRoute>
+              } />
               <Route path="/contact" element={<Contact />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
