@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface PlantAnalysisResult {
   plantName: string;
   condition: string;
@@ -17,6 +19,14 @@ export interface ImageValidationResult {
   isValid: boolean;
   reason?: string;
   confidence: number;
+}
+
+interface ApiConfig {
+  id: string;
+  name: string;
+  api_key: string;
+  endpoint_url: string;
+  model_name: string;
 }
 
 // Comprehensive plant disease and condition database
@@ -172,9 +182,48 @@ const plantConditions = {
 };
 
 export class PlantAnalysisService {
+  static async getActiveApiConfig(): Promise<ApiConfig | null> {
+    try {
+      console.log('Fetching active API configuration from database...');
+      
+      const { data, error } = await supabase.rpc('get_active_api_config');
+      
+      if (error) {
+        console.error('Error fetching API config:', error);
+        throw new Error('Failed to fetch API configuration from database');
+      }
+
+      if (!data || data.length === 0) {
+        console.log('No active API configuration found');
+        return null;
+      }
+
+      const config = data[0];
+      console.log('Active API configuration loaded:', { 
+        name: config.name, 
+        endpoint: config.endpoint_url,
+        model: config.model_name 
+      });
+      
+      return config;
+    } catch (error) {
+      console.error('Error getting API configuration:', error);
+      throw error;
+    }
+  }
+
   static async analyzeImage(imageFile: File): Promise<PlantAnalysisResult> {
     try {
       console.log('Starting plant analysis with validation...');
+      
+      // Check if API is configured in database
+      const apiConfig = await this.getActiveApiConfig();
+      
+      if (!apiConfig) {
+        throw new Error('No active API configuration found. Please configure your API credentials in the API Config tab before analyzing images.');
+      }
+
+      console.log('Using API configuration:', apiConfig.name);
       
       // First validate if the image contains a cassava plant
       const validationResult = await this.validateCassavaImage(imageFile);

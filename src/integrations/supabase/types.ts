@@ -14,13 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      api_configurations: {
+        Row: {
+          api_key: string
+          created_at: string
+          created_by: string | null
+          endpoint_url: string
+          id: string
+          is_active: boolean
+          model_name: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          created_by?: string | null
+          endpoint_url: string
+          id?: string
+          is_active?: boolean
+          model_name?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          created_by?: string | null
+          endpoint_url?: string
+          id?: string
+          is_active?: boolean
+          model_name?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_active_api_config: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          api_key: string
+          endpoint_url: string
+          model_name: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

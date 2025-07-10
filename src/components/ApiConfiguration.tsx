@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,33 +14,80 @@ import {
   Eye,
   EyeOff,
   Lock,
-  Shield
+  Shield,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ApiConfigData {
+  id: string;
+  name: string;
+  api_key: string;
+  endpoint_url: string;
+  model_name: string | null;
+  is_active: boolean;
+}
 
 const ApiConfiguration = () => {
   const [apiKey, setApiKey] = useState("");
   const [modelEndpoint, setModelEndpoint] = useState("");
+  const [configName, setConfigName] = useState("");
+  const [modelName, setModelName] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [currentConfig, setCurrentConfig] = useState<ApiConfigData | null>(null);
   const { toast } = useToast();
   const { user, isLoggedIn } = useUser();
 
-  // Check if current user is admin - using the proper user object from Supabase
+  // Check if current user is admin
   const isAdmin = isLoggedIn && user?.email === "omotayoofficialbr@gmail.com";
 
-  const handleSaveConfiguration = () => {
-    if (!isLoggedIn) {
+  // Load active configuration on component mount
+  useEffect(() => {
+    loadActiveConfiguration();
+  }, []);
+
+  const loadActiveConfiguration = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.rpc('get_active_api_config');
+      
+      if (error) {
+        console.error('Error loading configuration:', error);
+        toast({
+          title: "Error Loading Configuration",
+          description: "Failed to load API configuration from database",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const config = data[0];
+        setCurrentConfig(config);
+        setConfigName(config.name);
+        setApiKey(config.api_key);
+        setModelEndpoint(config.endpoint_url);
+        setModelName(config.model_name || "");
+      }
+    } catch (error) {
+      console.error('Error loading configuration:', error);
       toast({
-        title: "Authentication Required",
-        description: "Please log in to configure API settings",
+        title: "Error",
+        description: "An unexpected error occurred while loading configuration",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  const handleSaveConfiguration = async () => {
     if (!isAdmin) {
       toast({
         title: "Access Denied",
@@ -50,44 +97,75 @@ const ApiConfiguration = () => {
       return;
     }
 
-    if (!apiKey.trim()) {
+    if (!apiKey.trim() || !modelEndpoint.trim() || !configName.trim()) {
       toast({
-        title: "API Key Required",
-        description: "Please enter your API key",
+        title: "Missing Information",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
     }
 
-    if (!modelEndpoint.trim()) {
+    setIsSaving(true);
+
+    try {
+      // First, set all configurations to inactive
+      await supabase
+        .from('api_configurations')
+        .update({ is_active: false })
+        .neq('id', 'dummy');
+
+      // Then either update existing or create new configuration
+      let result;
+      if (currentConfig) {
+        result = await supabase
+          .from('api_configurations')
+          .update({
+            name: configName,
+            api_key: apiKey,
+            endpoint_url: modelEndpoint,
+            model_name: modelName || null,
+            is_active: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentConfig.id);
+      } else {
+        result = await supabase
+          .from('api_configurations')
+          .insert({
+            name: configName,
+            api_key: apiKey,
+            endpoint_url: modelEndpoint,
+            model_name: modelName || null,
+            is_active: true,
+            created_by: user?.id
+          });
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
       toast({
-        title: "Model Endpoint Required",
-        description: "Please enter your model endpoint URL",
+        title: "Configuration Saved",
+        description: "Your API configuration has been saved successfully",
+      });
+
+      // Reload the configuration
+      await loadActiveConfiguration();
+    } catch (error) {
+      console.error('Error saving configuration:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save API configuration. Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsSaving(false);
     }
-
-    // Save to localStorage for now (in production, this should be handled securely)
-    localStorage.setItem('plantAnalysis_apiKey', apiKey);
-    localStorage.setItem('plantAnalysis_modelEndpoint', modelEndpoint);
-
-    toast({
-      title: "Configuration Saved",
-      description: "Your API configuration has been saved successfully",
-    });
   };
 
   const handleTestConnection = async () => {
-    if (!isLoggedIn) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to test API configuration",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!isAdmin) {
       toast({
         title: "Access Denied",
@@ -151,14 +229,14 @@ const ApiConfiguration = () => {
     }
   };
 
-  // Load saved configuration on component mount
-  useState(() => {
-    const savedApiKey = localStorage.getItem('plantAnalysis_apiKey');
-    const savedEndpoint = localStorage.getItem('plantAnalysis_modelEndpoint');
-    
-    if (savedApiKey) setApiKey(savedApiKey);
-    if (savedEndpoint) setModelEndpoint(savedEndpoint);
-  });
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <span className="ml-2 text-gray-600">Loading configuration...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -193,8 +271,8 @@ const ApiConfiguration = () => {
       <Alert>
         <Key className="h-4 w-4" />
         <AlertDescription>
-          <strong>Security Note:</strong> In this demo, credentials are stored locally. 
-          For production use, consider using secure backend storage or environment variables.
+          <strong>Database Storage:</strong> API configurations are now securely stored in the database 
+          with proper access controls and encryption.
         </AlertDescription>
       </Alert>
 
@@ -217,6 +295,18 @@ const ApiConfiguration = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="config-name">Configuration Name</Label>
+            <Input
+              id="config-name"
+              placeholder={isAdmin ? "Enter configuration name (e.g., 'Production API')" : "••••••••••••••••"}
+              value={configName}
+              onChange={(e) => setConfigName(e.target.value)}
+              disabled={!isAdmin}
+              readOnly={!isAdmin}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="api-key">API Key</Label>
             <div className="relative">
@@ -264,14 +354,35 @@ const ApiConfiguration = () => {
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="model-name">Model Name (Optional)</Label>
+            <Input
+              id="model-name"
+              placeholder={isAdmin ? "e.g., plant-disease-detector-v1" : "••••••••••••••••"}
+              value={modelName}
+              onChange={(e) => setModelName(e.target.value)}
+              disabled={!isAdmin}
+              readOnly={!isAdmin}
+            />
+          </div>
+
           <div className="flex space-x-3">
             <Button
               onClick={handleSaveConfiguration}
               className="flex-1"
-              disabled={!isAdmin || !apiKey.trim() || !modelEndpoint.trim()}
+              disabled={!isAdmin || !apiKey.trim() || !modelEndpoint.trim() || !configName.trim() || isSaving}
             >
-              <Save className="mr-2 h-4 w-4" />
-              Save Configuration
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Configuration
+                </>
+              )}
             </Button>
             <Button
               onClick={handleTestConnection}

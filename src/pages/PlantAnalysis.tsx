@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,19 +73,6 @@ const PlantAnalysis = () => {
       return;
     }
 
-    // Check if API is configured
-    const savedApiKey = localStorage.getItem('plantAnalysis_apiKey');
-    const savedEndpoint = localStorage.getItem('plantAnalysis_modelEndpoint');
-
-    if (!savedApiKey || !savedEndpoint) {
-      toast({
-        title: "API Not Configured",
-        description: "Please configure your API credentials in the API Config tab before analyzing images.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsAnalyzing(true);
     
     try {
@@ -115,6 +101,12 @@ const PlantAnalysis = () => {
         toast({
           title: "Invalid Image",
           description: errorMessage.replace('Invalid image: ', ''),
+          variant: "destructive",
+        });
+      } else if (errorMessage.includes('No active API configuration')) {
+        toast({
+          title: "API Not Configured",
+          description: "Please configure your API credentials in the API Config tab before analyzing images.",
           variant: "destructive",
         });
       } else {
