@@ -69,7 +69,12 @@ const ApiConfiguration = () => {
 
       if (data && data.length > 0) {
         const config = data[0];
-        setCurrentConfig(config);
+        // Transform the data to match ApiConfigData interface by adding is_active property
+        const configData: ApiConfigData = {
+          ...config,
+          is_active: true // Since we're getting the active config, it's always true
+        };
+        setCurrentConfig(configData);
         setConfigName(config.name);
         setApiKey(config.api_key);
         setModelEndpoint(config.endpoint_url);
