@@ -1,5 +1,4 @@
 
-
 # Welcome to my final year project
 
 If you want to work locally using your own IDE, you can clone this repo and push changes
@@ -73,11 +72,19 @@ src/
 ├── components/           # Reusable UI components
 │   ├── ui/              # shadcn/ui base components
 │   ├── sections/        # Page sections (Hero, Services, etc.)
+│   ├── api-configuration/  # API configuration components
+│   │   ├── AccessControlAlerts.tsx    # Access control notifications
+│   │   ├── ApiCredentialsForm.tsx     # API credentials input form
+│   │   └── SupportedApis.tsx          # Supported API documentation
 │   ├── Navbar.tsx       # Navigation component
-│   └── ApiConfiguration.tsx  # API setup component
+│   ├── ApiConfiguration.tsx  # Main API configuration component
+│   └── ModelRecommendations.tsx  # AI model recommendations
 ├── contexts/            # React Context providers
 │   └── UserContext.tsx  # User authentication context
 ├── hooks/               # Custom React hooks
+│   ├── useApiConfiguration.ts  # API configuration state management
+│   ├── useApiTest.ts           # API connection testing
+│   └── use-toast.ts            # Toast notification hook
 ├── pages/               # Route components
 │   ├── Index.tsx        # Landing page
 │   ├── Auth.tsx         # Authentication page
@@ -91,113 +98,214 @@ src/
 └── App.tsx             # Main application component
 ```
 
-**Key Frontend Technologies:**
+**Component Architecture - API Configuration System:**
 
-1. **Component Architecture**
-   - Functional components with React Hooks
-   - TypeScript interfaces for type safety
-   - Modular component design with single responsibility
+The API Configuration system has been refactored into a modular architecture with the following components:
 
-2. **Styling System**
-   - Tailwind CSS utility-first approach
-   - Custom CSS variables for theming
-   - Responsive design with mobile-first approach
-   - shadcn/ui for consistent UI components
+1. **Main Components:**
+   - `ApiConfiguration.tsx` - Main container component orchestrating the API configuration flow
+   - `AccessControlAlerts.tsx` - Handles authentication and authorization alerts
+   - `ApiCredentialsForm.tsx` - Form component for API credential input and management
+   - `SupportedApis.tsx` - Documentation component for supported AI APIs
 
-3. **State Management**
-   - React Context for global state (user authentication)
-   - TanStack Query for API data fetching and caching
-   - Local component state with useState hook
+2. **Custom Hooks:**
+   - `useApiConfiguration.ts` - Manages API configuration state, database operations, and form handling
+   - `useApiTest.ts` - Handles API connection testing and validation
+   - `use-toast.ts` - Provides toast notification functionality
 
-4. **Routing Implementation**
+3. **Key Features:**
+   - **Modular Design:** Each component has a single responsibility
+   - **Reusability:** Components can be easily reused across different parts of the application
+   - **Type Safety:** Full TypeScript integration with proper interface definitions
+   - **Error Handling:** Comprehensive error handling with user-friendly messages
+   - **Access Control:** Role-based access control with admin-only configuration changes
+
+**Styling System:**
+- Tailwind CSS utility-first approach
+- Custom CSS variables for theming
+- Responsive design with mobile-first approach
+- shadcn/ui for consistent UI components with proper accessibility
+
+**State Management Implementation:**
+
+1. **API Configuration Hook (`useApiConfiguration.ts`):**
    ```typescript
-   // App.tsx routing structure
-   <BrowserRouter>
-     <Routes>
-       <Route path="/" element={<Index />} />
-       <Route path="/auth" element={<Auth />} />
-       <Route path="/plant-analysis" element={<PlantAnalysis />} />
-       <Route path="/contact" element={<Contact />} />
-       <Route path="*" element={<NotFound />} />
-     </Routes>
-   </BrowserRouter>
+   // Manages complete API configuration lifecycle
+   const {
+     apiKey, setApiKey,
+     modelEndpoint, setModelEndpoint,
+     configName, setConfigName,
+     modelName, setModelName,
+     isLoading, isSaving,
+     isAdmin, isLoggedIn,
+     saveConfiguration,
+     loadActiveConfiguration
+   } = useApiConfiguration();
    ```
+
+2. **API Testing Hook (`useApiTest.ts`):**
+   ```typescript
+   // Handles API connection validation
+   const { 
+     isTesting, 
+     testResult, 
+     testConnection 
+   } = useApiTest(isAdmin);
+   ```
+
+**Routing Implementation:**
+```typescript
+// App.tsx routing structure with protected routes
+<BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Index />} />
+    <Route path="/auth" element={<Auth />} />
+    <Route path="/plant-analysis" element={<PlantAnalysis />} />
+    <Route path="/contact" element={<Contact />} />
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+</BrowserRouter>
+```
 
 ### Backend Integration
 
-**API Architecture:**
-The project uses a **serverless backend approach** with external API integrations rather than a traditional backend server.
+**Database Architecture:**
+The project uses Supabase as the backend-as-a-service platform with PostgreSQL database.
 
-**Backend Services:**
+**Database Schema:**
 
-1. **Plant Analysis APIs**
-   - **Primary Service:** Custom plant analysis API for disease detection
-   - **Secondary Service:** Roboflow AI model integration for cassava plant analysis
-   - **Implementation:** RESTful API calls with proper error handling
-
-2. **Authentication System**
-   - **Approach:** Frontend-based authentication with secure token management
-   - **User Context:** React Context API for maintaining user session state
-   - **Storage:** Local storage for user preferences and session data
-
-3. **External API Integration**
-   ```typescript
-   // Service layer architecture
-   export class RoboflowService {
-     private static API_URL = 'https://detect.roboflow.com';
-     
-     static async analyzeImage(imageFile: File, apiKey: string, modelEndpoint: string) {
-       // Base64 image conversion and API call implementation
-     }
-   }
+1. **API Configurations Table:**
+   ```sql
+   CREATE TABLE api_configurations (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     name TEXT NOT NULL,
+     api_key TEXT NOT NULL,
+     endpoint_url TEXT NOT NULL,
+     model_name TEXT,
+     is_active BOOLEAN DEFAULT false,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+     created_by UUID REFERENCES auth.users
+   );
    ```
 
-**API Configuration:**
+2. **Row Level Security (RLS) Policies:**
+   - Admin users can create, update, and delete API configurations
+   - Authenticated users can view API configurations
+   - Email-based admin identification: `omotayoofficialbr@gmail.com`
 
-1. **Environment Variables**
-   - API keys stored securely
-   - Configurable API endpoints
-   - Development vs production environment settings
-
-2. **Error Handling**
-   - Comprehensive error boundary implementation
-   - User-friendly error messages
-   - Fallback mechanisms for API failures
-
-3. **Data Flow**
-   ```
-   User Upload → Image Processing → API Call → Result Processing → UI Update
+3. **Database Functions:**
+   ```sql
+   CREATE OR REPLACE FUNCTION get_active_api_config()
+   RETURNS TABLE(id uuid, name text, api_key text, endpoint_url text, model_name text)
+   LANGUAGE sql STABLE SECURITY DEFINER
    ```
 
-**Backend Features:**
+**API Service Architecture:**
 
-1. **Image Processing**
-   - Base64 encoding for API transmission
-   - File validation and size optimization
-   - Support for multiple image formats (JPEG, PNG, WebP)
+1. **Plant Analysis Service (`plantAnalysisService.ts`):**
+   - Integrates with multiple AI APIs for plant disease detection
+   - Handles image validation and preprocessing
+   - Provides comprehensive analysis results with treatment recommendations
 
-2. **Plant Disease Detection**
-   - AI-powered analysis using trained models
-   - Confidence scoring for predictions
-   - Treatment recommendations database
-   - Disease severity assessment
+2. **Roboflow Service (`roboflowService.ts`):**
+   - Specialized service for Roboflow AI model integration
+   - Handles base64 image encoding for API transmission
+   - Manages API key authentication and error handling
 
-3. **Data Management**
-   - Client-side data caching with TanStack Query
-   - Optimistic updates for better user experience
-   - Local storage for user preferences
+**Authentication System:**
+- Supabase Auth integration with email/password authentication
+- React Context API for global authentication state management
+- Protected routes with role-based access control
+- Automatic session management and token refresh
 
-**Security Implementation:**
-- API key protection through environment variables
-- Input validation for uploaded images
-- CORS handling for cross-origin requests
-- Secure HTTP requests with proper headers
+**Data Flow Architecture:**
+```
+User Input → Form Validation → State Management → Database Operation → UI Update
+     ↓
+API Configuration → Validation → Supabase RPC → Database Storage → Success Feedback
+```
+
+### Integration and Testing
+
+**Frontend Integration Testing:**
+
+1. **Component Integration:**
+   - API Configuration components work together seamlessly
+   - State management between hooks and components is properly synchronized
+   - Form validation and error handling integration
+
+2. **Authentication Integration:**
+   - User context integration with API configuration access control
+   - Proper redirection and session management
+   - Role-based feature access (admin-only configuration changes)
+
+3. **Database Integration:**
+   - Supabase client integration with proper error handling
+   - Real-time data synchronization between frontend and database
+   - Optimistic updates with rollback on failure
+
+**API Integration Testing:**
+
+1. **External API Integration:**
+   - Plant analysis API connection testing
+   - Roboflow API integration validation
+   - Error handling for API failures and network issues
+
+2. **Database API Integration:**
+   - CRUD operations for API configurations
+   - RLS policy enforcement testing
+   - Database function execution and result handling
+
+**Testing Strategy:**
+
+1. **Unit Testing:**
+   - Individual component functionality
+   - Hook behavior and state management
+   - Utility function validation
+
+2. **Integration Testing:**
+   - Component interaction testing
+   - API service integration
+   - Database operation validation
+
+3. **End-to-End Testing:**
+   - Complete user workflow testing
+   - Authentication flow validation
+   - API configuration and plant analysis pipeline
 
 **Performance Optimization:**
-- Lazy loading for page components
-- Image optimization and compression
-- API response caching
-- Bundle splitting with Vite
 
-This implementation provides a modern, scalable architecture that separates concerns between frontend presentation and backend data processing while maintaining high performance and user experience standards.
+1. **Frontend Optimization:**
+   - Lazy loading for page components
+   - Memoization for expensive computations
+   - Optimized re-renders with proper dependency arrays
 
+2. **Backend Optimization:**
+   - Database query optimization
+   - API response caching with TanStack Query
+   - Connection pooling and timeout management
+
+3. **Build Optimization:**
+   - Vite build optimization with code splitting
+   - Tree shaking for unused code elimination
+   - Asset optimization and compression
+
+**Error Handling and Monitoring:**
+
+1. **Frontend Error Handling:**
+   - Comprehensive try-catch blocks with user-friendly error messages
+   - Toast notifications for user feedback
+   - Form validation with real-time error display
+
+2. **Backend Error Handling:**
+   - Database constraint violation handling
+   - API timeout and network error management
+   - Graceful degradation for service unavailability
+
+3. **Monitoring and Logging:**
+   - Console logging for development debugging
+   - Error boundary implementation for React components
+   - Performance monitoring with metrics collection
+
+This implementation provides a robust, scalable, and maintainable system for AI-powered plant analysis with comprehensive API configuration management, ensuring high performance and excellent user experience.
