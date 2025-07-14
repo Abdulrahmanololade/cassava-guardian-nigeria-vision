@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import PlantAnalysis from "./pages/PlantAnalysis";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import Splash from "./pages/Splash";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -23,17 +24,40 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <div className="min-h-screen bg-background">
-            <Navbar />
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/plant-analysis" element={
-                <ProtectedRoute>
-                  <PlantAnalysis />
-                </ProtectedRoute>
+              <Route path="/splash" element={<Splash />} />
+              <Route path="/" element={
+                <>
+                  <Navbar />
+                  <Index />
+                </>
               } />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/auth" element={
+                <>
+                  <Navbar />
+                  <Auth />
+                </>
+              } />
+              <Route path="/plant-analysis" element={
+                <>
+                  <Navbar />
+                  <ProtectedRoute>
+                    <PlantAnalysis />
+                  </ProtectedRoute>
+                </>
+              } />
+              <Route path="/contact" element={
+                <>
+                  <Navbar />
+                  <Contact />
+                </>
+              } />
+              <Route path="*" element={
+                <>
+                  <Navbar />
+                  <NotFound />
+                </>
+              } />
             </Routes>
           </div>
         </BrowserRouter>
