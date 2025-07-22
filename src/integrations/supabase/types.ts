@@ -17,35 +17,50 @@ export type Database = {
       api_configurations: {
         Row: {
           api_key: string
+          api_provider: string | null
+          api_version: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           endpoint_url: string
           id: string
           is_active: boolean
+          is_default: boolean | null
           model_name: string | null
           name: string
+          rate_limit_per_minute: number | null
           updated_at: string
         }
         Insert: {
           api_key: string
+          api_provider?: string | null
+          api_version?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           endpoint_url: string
           id?: string
           is_active?: boolean
+          is_default?: boolean | null
           model_name?: string | null
           name: string
+          rate_limit_per_minute?: number | null
           updated_at?: string
         }
         Update: {
           api_key?: string
+          api_provider?: string | null
+          api_version?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           endpoint_url?: string
           id?: string
           is_active?: boolean
+          is_default?: boolean | null
           model_name?: string | null
           name?: string
+          rate_limit_per_minute?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -56,6 +71,16 @@ export type Database = {
     }
     Functions: {
       get_active_api_config: {
+        Args: Record<PropertyKey, never> | { provider_name?: string }
+        Returns: {
+          id: string
+          name: string
+          api_key: string
+          endpoint_url: string
+          model_name: string
+        }[]
+      }
+      get_all_active_api_configs: {
         Args: Record<PropertyKey, never>
         Returns: {
           id: string
@@ -63,6 +88,11 @@ export type Database = {
           api_key: string
           endpoint_url: string
           model_name: string
+          api_provider: string
+          api_version: string
+          description: string
+          rate_limit_per_minute: number
+          is_default: boolean
         }[]
       }
     }
